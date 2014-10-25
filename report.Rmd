@@ -1,0 +1,95 @@
+---
+title: "Analysis on relationship of transmission type and MPG on cars "
+output: html_document
+---
+## Executive summary
+This report is to investigate the relationship between a set of variables and miles per gallon(MPG). The following two questions will be addressed.
+* Is an automatic or manual transmission better for MPG
+* Quantify the MPG difference between automatic and manual transmissions
+The data was collected from 32 automobiles(1973-1974 models). 
+The key findings of this report are: 
+* Automatic transimission is not better than manual transmission
+* The MPG difference for manual and automatic transmission is 1.8 mpg. 
+
+## Data processing
+Acquire the data set and cleaning it.
+```{r echo=TRUE}
+data(mtcars)
+mtcars$cyl <- factor(mtcars$cyl)
+mtcars$vs <- factor(mtcars$vs)
+mtcars$am <- factor(mtcars$am)
+mtcars$gear <- factor(mtcars$gear)
+mtcars$carb <- factor(mtcars$carb)
+```
+
+## Exploratory analysis
+Figure 1 is a boxplot of mpg vs am, it shows that automatic and manual transmission do seem to have different mpg values. Figure 2 is a pairwise graph to have a look at the relationships between each variables. 
+
+## Model Building
+The step function is used for automatically search of best regression. Start with a model that include all the predictors. The summary is shown in table 1, which demonstrates that not all the predictors are significant. 
+
+Table 1. Model fitted with all predictors
+```{r echo=TRUE}
+fitall <- lm(mpg~., mtcars)
+summary(fitall)
+```
+
+Next, I am going to use step function to reduce the insignificant variables. The analysis is shown in table 2. According to the summary table, the most significant variables are cyl, hp, wt and am. The fitting yields an R-squared value of 84%, meaning that very high percentage of the variation can be explained by this model.
+
+Table 2. Model with significant variables
+```{r echo=TRUE}
+fitbest <- step(fitall, direction="backward", trace=0)
+summary(fitbest)
+```
+
+## Residual and diagnosis
+Figure 3 shows the residual plots for the best fitted model.
+```{r echo=TRUE}
+par(mfrow=c(2,2))
+plot(fitbest, col="cornflowerblue", pch=20, lwd=2)
+```
+
+* The residuals vs fitted and scale-location plots have no patterns, indicate the model fits well.
+* Normal Q-Q plot show the distribution of standardized residuals is very close to normal distribution
+* The residuals vs leverage plot shows that there is no significant outliers with this fitting model
+
+## Statistical inference
+A t test can be performed to examine the hyphothesis that the transmission type does not have effects on miles/gallon values for different cars. The result is shown in Table 3. The p-value of this test is 0.001374, which means that the probablility of accepting null hypothesis is low, therefore we should reject the null. In other words, the two types do influent the mpg.
+
+Table 3. P-value for t-test.
+```{r echo=TRUE}
+t.test(mpg~am, data=mtcars)
+```
+
+## Conclusion
+From the above analysis, one can see that the transmission type has an effect on the measurement of miles/gallon. The manual transmission is better by 1.8 mpg than the automatic transmission. The fitting model used here has four predictors, which are cyl, hp, wt and am. The R squared value for the fitting model is 84%. In addition, the mean value of mpg for automatic transmission is 17.15 and that for manual transmission is 24.39. The difference between the means is about 7.2 mpg.
+
+## Appendix
+
+Description of variables
+
+- mpg Miles/(US) gallon
+- cyl Number of cylinders
+- disp Displacement (cu.in.)
+- hp Gross horsepower
+- drat Rear axle ratio
+- wt Weight (lb/1000)
+- qsec Time to drive ¼ mile
+- vs V or ordinary engine
+- am Transmission (0 = automatic, 1 = manual)
+- gear Number of forward gears
+- carb Number of carburetors
+
+Figure 1. Boxplot of mpg vs am
+```{r echo=TRUE}
+par(mfrow=c(1,1))
+library(ggplot2)
+ggplot(mtcars, aes(x=factor(am, labels=c("Automatic","Manual")), y=mpg, fill=am))+geom_boxplot()+theme_bw()+xlab("Transmission type")+ylab("Miles/US gallon")+ggtitle("Transmission type vs Miles/(US) gallon of cars")+theme(legend.position="none")
+```
+
+Figure 2. Pairwise graph of "mtcars" data
+```{r echo=TRUE}
+pairs(mtcars, panel=panel.smooth)
+```
+
+
